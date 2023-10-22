@@ -52,17 +52,16 @@ async def send_welcome(message: types.Message):
 async def make_call(message: types.Message):
     chat_id = message.chat.id
     msg = message.text.split()
-    try :
-        if len(msg) == 3:
-            number = str(msg[1])
-            name = msg[2]
-            call_sid: str | None = JokerInstance.dial(dial_to = Number("+"+number), dial_from = Number("16233884333"),callback_url = "https://c4e2-178-77-177-153.ngrok-free.app/makecall/"+str(chat_id)+"/"+name) 
+
+    if len(msg) == 3:
+        number = str(msg[1])
+        name = msg[2]
+        call_sid: str | None = JokerInstance.dial(dial_to = Number("+"+number), dial_from = Number("16233884333"),callback_url = "https://c4e2-178-77-177-153.ngrok-free.app/makecall/"+str(chat_id)+"/"+name) 
 
 
-        await message.reply(name)
+    await message.reply(name)
 
-    except:
-        await message.reply("Error in making call")
+
 @dp.callback_query_handler(lambda c: c.data)
 async def process_callback(callback_query: types.CallbackQuery):
     # Here you can make a POST request to your server

