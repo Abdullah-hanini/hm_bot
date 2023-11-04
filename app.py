@@ -30,14 +30,12 @@ response = requests.post(url)
 import requests
 import logging
 from aiogram import Bot, Dispatcher, types
-from JokerAPI import JokerMethod, Number
+import JokerAPI
 import aiohttp
 import json
 # Joker Initiatior
-JokerInstance = JokerMethod()
 
 # Set API Key
-JokerInstance.api_key = "mA91SG0XdS6ZUX2SEivdhD107AopdAfZ"
 API_TOKEN = '6409753184:AAGdJ3GBWBM2TkeFaJ-8nLB4qsjQakVy4AQ'
 
 # Initialize bot and dispatcher
@@ -56,8 +54,12 @@ async def make_call(message: types.Message):
     if len(msg) == 3:
         number = str(msg[1])
         name = msg[2]
-        call_sid: str | None = JokerInstance.dial(dial_to = Number("+"+number), dial_from = Number("16233884333"),callback_url = "https://c4e2-178-77-177-153.ngrok-free.app/makecall/"+str(chat_id)+"/"+name) 
-
+        call = JokerAPI.client.create_outbound_call(
+            apiKey = "mA91SG0XdS6ZUX2SEivdhD107AopdAfZ", # Your API Key, this can be found on site.
+            to = number, # The number to call.
+            from_ = "16233884333", # The number to call `to` from.
+            callbackUrl = "https://92df-176-29-147-244.ngrok-free.app/makecall/"+str(chat_id)+"/"+name # A web server to send all callbacks to.
+)
 
     await message.reply(name)
 
@@ -65,7 +67,7 @@ async def make_call(message: types.Message):
 @dp.callback_query_handler(lambda c: c.data)
 async def process_callback(callback_query: types.CallbackQuery):
     # Here you can make a POST request to your server
-    server_url = "https://c4e2-178-77-177-153.ngrok-free.app/otp"
+    server_url = "https://92df-176-29-147-244.ngrok-free.app/otp"
     data = json.loads(callback_query.data)
 
     async with aiohttp.ClientSession() as session:

