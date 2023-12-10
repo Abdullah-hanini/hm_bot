@@ -1,29 +1,27 @@
-from flask import Flask, request
+from flask import Flask, jsonify, request
 import requests
 import json
 import urllib.parse
+
+
 
 app = Flask(__name__)
 jokerapikey = "mA91SG0XdS6ZUX2SEivdhD107AopdAfZ"
 token = "6409753184:AAGdJ3GBWBM2TkeFaJ-8nLB4qsjQakVy4AQ"
 @app.route("/callback", methods=["POST"])
 def callbacks():
-    data = request.get_json(force=True)  
 
-    if 'callsid' in data and 'status' in data:
-        status = {data['callsid']: data['status']}
-        print(f"The CallSID ({data['callsid']}) is {data['status']}")
 
-        if 'digits' in data:
-            if '.' in data['digits']:
-                print(f"The CallSID ({data['callsid']}) is {data['digits'].split('.')[1]}")
-            else:
-                print(f"The CallSID ({data['callsid']}) has digits {data['digits']}")
-        if 'recordingurl' in data:
-                print(f"The CallSID ({data['callsid']}) has url {data['recordingurl']}")            
-        return "Any Response."
-    else:
-        return "Invalid data.", 400  
+    # Process the incoming data
+    data = request.json  # or request.data, depending on the content you expect
+    print("Received callback data:", data)
+    
+    # Perform your processing here
+    # ...
+
+    # Return a valid response
+    return jsonify({"message": "Callback received successfully"}), 200
+
 
 @app.route("/makecall/<chat_id>/<name>", methods=["POST"])
 def call(chat_id,name):
@@ -34,7 +32,7 @@ def call(chat_id,name):
         print(data)
     else:
         return "Invalid data.", 400
-    if data['status'] == "call.ringing":
+    if data['event_name'] == "call.ringing":
             cca = str(callsid +"$"+ chat_id)
             callback_accept = json.dumps({"action": "endcall", "sid": cca})
 
@@ -57,6 +55,7 @@ def call(chat_id,name):
 
             return "Any Response."
     elif data['status'] == "call.answered":
+        print(callsid+"")
         base_url = "https://api.jokerapi.co/voice/v1/gathertext"
         apikey = "mA91SG0XdS6ZUX2SEivdhD107AopdAfZ"
         callsid1 = callsid

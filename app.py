@@ -54,20 +54,44 @@ async def make_call(message: types.Message):
     if len(msg) == 3:
         number = str(msg[1])
         name = msg[2]
-        call = JokerAPI.client.create_outbound_call(
-            apiKey = "mA91SG0XdS6ZUX2SEivdhD107AopdAfZ", # Your API Key, this can be found on site.
-            to = number, # The number to call.
-            from_ = "16233884333", # The number to call `to` from.
-            callbackUrl = "https://92df-176-29-147-244.ngrok-free.app/makecall/"+str(chat_id)+"/"+name # A web server to send all callbacks to.
-)
 
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+
+        }
+
+        data = {
+            'to': '+'+number,
+            'from': '+16233884333',
+            'callback_url': 'https://settled-perch-nationally.ngrok-free.app/makecall/'+str(chat_id)+"/"+name,
+            'type': 'api',
+            'amd_enabled': True,  
+            'record_enabled': True  
+        }
+
+        response = requests.post(
+            'https://api.apivalley.su/api/v1/calls/create-call',
+            headers=headers,
+            json=data,  
+            auth=('9acf0625-38e6-4a04-8f31-3163145b121f', 'Q8Drtr3qZfdNbHtSdwoCG5yME0s8Vy5N4Vt7qEtfKXWjhaptYQ2giI0Dof8faM60'),
+        )
+        if response.status_code == 200:
+            response_data = response.json()  # Parse JSON response content
+            if 'data' in response_data and 'call_id' in response_data['data']:
+                print(response_data['data']['call_id'])
+            else:
+                print("The 'data' or 'call_id' key is not in the JSON response.")
+        else:
+            print("Failed to create call. Status code:", response.status_code)
+            print("Response content:", response.text)
     await message.reply(name)
 
 
 @dp.callback_query_handler(lambda c: c.data)
 async def process_callback(callback_query: types.CallbackQuery):
     # Here you can make a POST request to your server
-    server_url = "https://92df-176-29-147-244.ngrok-free.app/otp"
+    server_url = "https://settled-perch-nationally.ngrok-free.app/otp"
     data = json.loads(callback_query.data)
 
     async with aiohttp.ClientSession() as session:
